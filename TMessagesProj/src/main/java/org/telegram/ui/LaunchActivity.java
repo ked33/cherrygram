@@ -9093,9 +9093,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     private void processFeats() {
         CherrygramCoreConfig.INSTANCE.setUpdateAvailable(false);
-        if (CherrygramCoreConfig.INSTANCE.getAutoOTA()) {
-            checkCgUpdates(getSafeLastFragment(), null, false);
-        }
+        // Auto update check on launch disabled — updates must be triggered manually via Settings.
         if (!CherrygramCoreConfig.isPlayStoreBuild()) CherrygramExtras.INSTANCE.checkChannelFollow(this, currentAccount);
         CherrygramChatsConfig.INSTANCE.init();
         CherrygramCoreConfig.INSTANCE.init();

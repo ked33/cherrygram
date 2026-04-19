@@ -160,12 +160,8 @@ public class UpdaterBottomSheet extends BottomSheet {
             });
             buttonsView.addView(downloadButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL, 16, 16, 72, 16));
 
-            if (update.isForce()) {
-                setCancelable(false);
-                isForce = true;
-                CherrygramCoreConfig.INSTANCE.setAutoOTA(true);
-            }
-            CherrygramCoreConfig.INSTANCE.setForceFound(update.isForce());
+            // Force-update coercion removed: dialog stays dismissible and autoOTA is not force-enabled.
+            CherrygramCoreConfig.INSTANCE.setForceFound(false);
         } else {
             final String bType = CGResourcesHelper.getBuildType() + " | " + CGResourcesHelper.getAbiCode();
 

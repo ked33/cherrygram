@@ -104,7 +104,7 @@ object CherrygramCoreConfig: CoroutineScope by CoroutineScope(
 
     /** OTA start */
     var installBetas by sharedPreferences.boolean("CG_Install_Beta_Ver", isStandaloneBetaBuild())
-    var autoOTA by sharedPreferences.boolean("CG_Check_Auto_OTA", isStandaloneStableBuild() || isStandaloneBetaBuild() || isDevBuild())
+    var autoOTA by sharedPreferences.boolean("CG_Check_Auto_OTA", false)
     var lastUpdateCheckTime by sharedPreferences.long("CG_LastUpdateCheckTime", 0)
     var updateScheduleTimestamp by sharedPreferences.long("CG_UpdateScheduleTimestamp", 0)
     var forceFound by sharedPreferences.boolean("CG_ForceFound", false)
