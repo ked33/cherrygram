@@ -6883,6 +6883,16 @@ public class MessageObject {
         return false;
     }
 
+    private static final int LOCAL_LINKS_SUPPLEMENT_ENTITY_THRESHOLD = 100;
+    private static final int MANUAL_PARSE_LINK_FALLBACK_LIMIT = 1000;
+
+    private static boolean shouldSupplementLinksForEntityList(CharSequence text, ArrayList<TLRPC.MessageEntity> entities) {
+        return text instanceof Spannable
+                && entities != null
+                && entities.size() >= LOCAL_LINKS_SUPPLEMENT_ENTITY_THRESHOLD
+                && containsUrls(text);
+    }
+
     public void generateLinkDescription() {
         if (linkDescription != null) {
             return;
@@ -7077,6 +7087,8 @@ public class MessageObject {
                     }
                 }
                 addUrlsByPattern(isOutOwner(), caption, true, 0, 0, true);
+            } else if (shouldSupplementLinksForEntityList(caption, entities)) {
+                addLinks(isOutOwner(), caption, true, true);
             }
 
             addEntitiesToText(caption, useManualParse);
@@ -7102,12 +7114,12 @@ public class MessageObject {
                 matcher = videoTimeUrlPattern.matcher(charSequence);
             } else if (patternType == 1) {
                 if (instagramUrlPattern == null) {
-                    instagramUrlPattern = Pattern.compile("(^|\\s|\\()@[a-zA-Z\\d_.]{1,32}|(^|\\s|\\()#[\\w.]+");
+                    instagramUrlPattern = Pattern.compile("(^|\\s|\\()@[a-zA-Z\\d_.]{1,32}|(^|\\s|\\()#(?=[\\p{L}\\p{N}_.]*[\\p{L}_.])[\\p{L}\\p{N}_.]+");
                 }
                 matcher = instagramUrlPattern.matcher(charSequence);
             } else {
                 if (urlPattern == null) {
-                    urlPattern = Pattern.compile("(^|\\s)/[a-zA-Z@\\d_]{1,255}|(^|\\s|\\()@[a-zA-Z\\d_]{1,32}|(^|\\s|\\()#[^0-9][\\w.]+(@[^0-9][\\w.]+)?|(^|\\s|\\()\\$[^0-9][\\w.]+(@[^0-9][\\w.]+)?|(^|\\s)\\$[A-Z]{3,8}([ ,.]|$)");
+                    urlPattern = Pattern.compile("(^|\\s)/[a-zA-Z@\\d_]{1,255}|(^|\\s|\\()@[a-zA-Z\\d_]{1,32}|(^|\\s|\\()#(?=[\\p{L}\\p{N}_.]*[\\p{L}_.])[\\p{L}\\p{N}_.]+(@(?=[\\p{L}\\p{N}_.]*[\\p{L}_.])[\\p{L}\\p{N}_.]+)?|(^|\\s|\\()\\$[^0-9][\\w.]+(@[^0-9][\\w.]+)?|(^|\\s)\\$[A-Z]{3,8}([ ,.]|$)");
                 }
                 matcher = urlPattern.matcher(charSequence);
             }
@@ -7116,7 +7128,7 @@ public class MessageObject {
             }
             Spannable spannable = (Spannable) charSequence;
             int totalCount = 0;
-            while (matcher.find() && totalCount < 100) {
+            while (matcher.find() && totalCount < MANUAL_PARSE_LINK_FALLBACK_LIMIT) {
                 int start = matcher.start();
                 int end = matcher.end();
                 URLSpanNoUnderline url = null;
@@ -7941,11 +7953,12 @@ public class MessageObject {
         generateLinkDescription();
         spoilLoginCode();
 
+        final ArrayList<TLRPC.MessageEntity> entities = getEntities();
         boolean hasEntities;
         if (messageOwner.send_state != MESSAGE_SEND_STATE_SENT) {
             hasEntities = false;
         } else {
-            hasEntities = !getEntities().isEmpty();
+            hasEntities = entities != null && !entities.isEmpty();
         }
 
         boolean useManualParse = !hasEntities && (
@@ -7963,6 +7976,8 @@ public class MessageObject {
         );
 
         if (useManualParse) {
+            addLinks(isOutOwner(), messageText, true, true);
+        } else if (shouldSupplementLinksForEntityList(messageText, entities)) {
             addLinks(isOutOwner(), messageText, true, true);
         } else {
             addPhoneLinks(messageText);
