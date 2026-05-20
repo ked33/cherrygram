@@ -6883,14 +6883,97 @@ public class MessageObject {
         return false;
     }
 
-    private static final int LOCAL_LINKS_SUPPLEMENT_ENTITY_THRESHOLD = 100;
     private static final int MANUAL_PARSE_LINK_FALLBACK_LIMIT = 1000;
+    private static final int LOCAL_HASHTAG_ENTITY_FALLBACK_LIMIT = 1000;
+    private static Pattern hashtagEntityPattern;
 
     private static boolean shouldSupplementLinksForEntityList(CharSequence text, ArrayList<TLRPC.MessageEntity> entities) {
         return text instanceof Spannable
                 && entities != null
-                && entities.size() >= LOCAL_LINKS_SUPPLEMENT_ENTITY_THRESHOLD
+                && entities.size() >= MediaDataController.MAX_LINKS_COUNT
                 && containsUrls(text);
+    }
+
+    private static Pattern getHashtagEntityPattern() {
+        if (hashtagEntityPattern == null) {
+            hashtagEntityPattern = Pattern.compile("(^|\\s|\\()#(?=[\\p{L}\\p{N}_.]*[\\p{L}_.])[\\p{L}\\p{N}_.]+(@(?=[\\p{L}\\p{N}_.]*[\\p{L}_.])[\\p{L}\\p{N}_.]+)?");
+        }
+        return hashtagEntityPattern;
+    }
+
+    private static boolean containsHashtagMarker(CharSequence text) {
+        if (text == null) {
+            return false;
+        }
+        for (int i = 0, n = text.length(); i < n; i++) {
+            if (text.charAt(i) == '#') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean blocksLocalHashtagEntity(TLRPC.MessageEntity entity) {
+        return entity instanceof TLRPC.TL_messageEntityHashtag ||
+                entity instanceof TLRPC.TL_messageEntityCashtag ||
+                entity instanceof TLRPC.TL_messageEntityMention ||
+                entity instanceof TLRPC.TL_messageEntityBotCommand ||
+                entity instanceof TLRPC.TL_messageEntityUrl ||
+                entity instanceof TLRPC.TL_messageEntityTextUrl ||
+                entity instanceof TLRPC.TL_messageEntityEmail ||
+                entity instanceof TLRPC.TL_messageEntityPhone ||
+                entity instanceof TLRPC.TL_messageEntityBankCard ||
+                entity instanceof TLRPC.TL_messageEntityCode ||
+                entity instanceof TLRPC.TL_messageEntityPre ||
+                entity instanceof TLRPC.TL_messageEntityMentionName ||
+                entity instanceof TLRPC.TL_inputMessageEntityMentionName;
+    }
+
+    private static boolean overlapsLocalHashtagEntity(int start, int end, ArrayList<TLRPC.MessageEntity> entities) {
+        if (entities == null) {
+            return false;
+        }
+        for (int i = 0, n = entities.size(); i < n; i++) {
+            TLRPC.MessageEntity entity = entities.get(i);
+            if (entity == null || !blocksLocalHashtagEntity(entity)) {
+                continue;
+            }
+            int entityStart = entity.offset;
+            int entityEnd = entity.offset + entity.length;
+            if (start < entityEnd && end > entityStart) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static ArrayList<TLRPC.MessageEntity> supplementHashtagEntities(CharSequence text, ArrayList<TLRPC.MessageEntity> entities) {
+        if (TextUtils.isEmpty(text) || !containsHashtagMarker(text)) {
+            return entities;
+        }
+        Matcher matcher = getHashtagEntityPattern().matcher(text);
+        ArrayList<TLRPC.MessageEntity> result = null;
+        int addedCount = 0;
+        while (matcher.find() && addedCount < LOCAL_HASHTAG_ENTITY_FALLBACK_LIMIT) {
+            int start = matcher.start();
+            int end = matcher.end();
+            while (start < end && text.charAt(start) != '#') {
+                start++;
+            }
+            ArrayList<TLRPC.MessageEntity> currentEntities = result != null ? result : entities;
+            if (start >= end || overlapsLocalHashtagEntity(start, end, currentEntities)) {
+                continue;
+            }
+            if (result == null) {
+                result = entities != null ? new ArrayList<>(entities) : new ArrayList<>();
+            }
+            TLRPC.TL_messageEntityHashtag entity = new TLRPC.TL_messageEntityHashtag();
+            entity.offset = start;
+            entity.length = end - start;
+            result.add(entity);
+            addedCount++;
+        }
+        return result != null ? result : entities;
     }
 
     public void generateLinkDescription() {
@@ -7479,6 +7562,7 @@ public class MessageObject {
             return false;
         }
         text = FormattedDateSpan.restoreFormatedDateEntities(text);
+        entities = supplementHashtagEntities(text, entities);
         Spannable spannable = (Spannable) text;
         URLSpan[] spans = spannable.getSpans(0, text.length(), URLSpan.class);
         boolean hasUrls = spans != null && spans.length > 0;
@@ -7681,7 +7765,9 @@ public class MessageObject {
                 if (linksCount >= MediaDataController.MAX_LINKS_COUNT) continue;
                 linksCount++;
                 spannable.setSpan(new URLSpanBotCommand(url, t, run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else if (run.urlEntity instanceof TLRPC.TL_messageEntityHashtag || run.urlEntity instanceof TLRPC.TL_messageEntityMention || run.urlEntity instanceof TLRPC.TL_messageEntityCashtag) {
+            } else if (run.urlEntity instanceof TLRPC.TL_messageEntityHashtag) {
+                spannable.setSpan(new URLSpanNoUnderline(url, run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (run.urlEntity instanceof TLRPC.TL_messageEntityMention || run.urlEntity instanceof TLRPC.TL_messageEntityCashtag) {
                 if (linksCount >= MediaDataController.MAX_LINKS_COUNT) continue;
                 linksCount++;
                 spannable.setSpan(new URLSpanNoUnderline(url, run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
