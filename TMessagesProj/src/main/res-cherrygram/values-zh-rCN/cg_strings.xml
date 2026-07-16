@@ -435,4 +435,30 @@
     <string name="DP_Donate_ExclusiveDesc">支持本项目来解锁所有功能。</string>
     <!--Donations-->
     <!--Cherrygram screens-->
+    <string name="CG_MediaPlayback">媒体与播放</string>
+    <string name="CG_StreamMkv">将 MKV 显示为视频</string>
+    <string name="CG_StreamMkv_Desc">允许把 MKV 文件按视频识别并播放。</string>
+    <string name="CG_StreamAllVideo">流式播放所有视频</string>
+    <string name="CG_StreamAllVideo_Desc">尽可能边下载边播放视频文件。</string>
+    <string name="CG_SendMp4DocumentAsVideo">MP4 文件显示预览</string>
+    <string name="CG_SendMp4DocumentAsVideo_Desc">将按文件发送的 MP4 仍显示为可预览视频。</string>
+    <string name="CG_DefaultHlsVideoQuality">默认 HLS 视频质量</string>
+    <string name="CG_VideoPlayerDecoder">视频解码器策略</string>
+    <string name="CG_VideoDecoderHardware">仅硬解</string>
+    <string name="CG_VideoDecoderPreferHardware">硬解优先</string>
+    <string name="CG_VideoDecoderPreferSoftware">软解优先</string>
+    <string name="CG_QualityOriginal">原画</string>
+    <string name="CG_QualityLow">较低质量</string>
+    <string name="CG_EnhancedVideoBitrate">改善上传视频画质</string>
+    <string name="CG_EnhancedVideoBitrate_Desc">使用更高的视频码率上限，文件体积也可能增加。</string>
+    <string name="CG_ShowSmallGif">GIF 显示得更小</string>
+    <string name="CG_ShowSmallGif_Desc">将聊天中的 GIF 固定为更紧凑的尺寸。</string>
+    <string name="CG_CopyVideoFrame">复制视频帧</string>
+    <string name="CG_CopyVideoFrame_Desc">在消息或媒体查看器菜单中复制当前视频画面。</string>
+    <string name="CG_MessageDetails">消息详细信息</string>
+    <string name="CG_MessageDetails_Desc">显示消息 ID、时间、发送者、媒体和文件信息。</string>
+    <string name="CG_ShowTimeDetails">点击时间显示详细信息</string>
+    <string name="CG_GroupCreatedAt">群组创建时间：%1$s</string>
+    <string name="CG_JoinedAt">你加入群组的时间：%1$s</string>
+    <string name="CG_JoinDateUnavailable">暂时无法获取你的加入时间。</string>
 </resources>

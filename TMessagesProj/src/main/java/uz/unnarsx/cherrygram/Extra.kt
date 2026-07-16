@@ -1,7 +1,14 @@
 package uz.unnarsx.cherrygram
 
 import android.app.Activity
+import org.telegram.messenger.AndroidUtilities
+import org.telegram.messenger.ChatObject
+import org.telegram.messenger.LocaleController
+import org.telegram.messenger.MessagesController
+import org.telegram.messenger.R
+import org.telegram.messenger.UserConfig
 import org.telegram.tgnet.TLRPC
+import org.telegram.ui.ActionBar.AlertDialog
 import org.telegram.ui.ActionBar.BaseFragment
 
 object Extra {
@@ -58,5 +65,36 @@ object Extra {
     }
 
     fun getRegistrationDate(fragment: BaseFragment?, activity: Activity?, userId: Long, chatId: Long) {
+        if (fragment == null || activity == null || chatId == 0L) return
+        val account = fragment.currentAccount
+        val controller = MessagesController.getInstance(account)
+        val chat = controller.getChat(chatId) ?: return
+        val creation = chat.date
+        var joined = 0
+        val full = controller.getChatFull(chatId)
+        full?.participants?.participants?.firstOrNull { it.user_id == UserConfig.getInstance(account).clientUserId }?.let { joined = it.date }
+        fun show(joinedDate: Int) {
+            val message = StringBuilder()
+            if (creation != 0) message.append(LocaleController.formatString(R.string.CG_GroupCreatedAt, LocaleController.formatDateChat(creation)))
+            if (joinedDate != 0) {
+                if (message.isNotEmpty()) message.append('\n')
+                message.append(LocaleController.formatString(R.string.CG_JoinedAt, LocaleController.formatDateChat(joinedDate)))
+            } else {
+                if (message.isNotEmpty()) message.append('\n')
+                message.append(LocaleController.getString(R.string.CG_JoinDateUnavailable))
+            }
+            AlertDialog.Builder(activity).setTitle(chat.title ?: "").setMessage(message.toString()).setPositiveButton(R.string.Close, null).show()
+        }
+        if (joined != 0 || !ChatObject.isChannel(chat)) {
+            show(joined)
+            return
+        }
+        val request = TLRPC.TL_channels_getParticipant()
+        request.channel = controller.getInputChannel(chatId)
+        request.participant = controller.getInputPeer(UserConfig.getInstance(account).clientUserId)
+        controller.connectionsManager.sendRequest(request) { response, _ ->
+            val date = (response as? TLRPC.TL_channels_channelParticipant)?.participant?.date ?: 0
+            AndroidUtilities.runOnUIThread { show(date) }
+        }
     }
 }

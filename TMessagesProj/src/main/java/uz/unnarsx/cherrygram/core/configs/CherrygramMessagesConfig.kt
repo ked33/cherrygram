@@ -84,6 +84,8 @@ object CherrygramMessagesConfig {
     var hideStickerTime by sharedPreferences.boolean("CP_TimeOnStick", false)
     var msgForwardDate by sharedPreferences.boolean("CP_ForwardMsgDate", true)
     var showPencilIcon by sharedPreferences.boolean("AP_PencilIcon", true)
+    var showMessageDetails by sharedPreferences.boolean("CP_ShowMessageDetails", true)
+    var showTimeDetails by sharedPreferences.boolean("CP_ShowTimeDetails", true)
     /** Appearance finish */
 
     /** Actions start */

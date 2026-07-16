@@ -337,6 +337,8 @@ import uz.unnarsx.cherrygram.core.configs.CherrygramChatsConfig;
 import uz.unnarsx.cherrygram.core.configs.CherrygramDebugConfig;
 import uz.unnarsx.cherrygram.core.configs.CherrygramMessagesConfig;
 import uz.unnarsx.cherrygram.helpers.PhotoViewerHelper;
+import uz.unnarsx.cherrygram.chats.helpers.MessageHelper;
+import uz.unnarsx.cherrygram.core.configs.CherrygramExperimentalConfig;
 
 import me.vkryl.core.reference.ReferenceList;
 
@@ -5061,6 +5063,12 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     } else {
                         showDownloadAlert();
                     }
+                } else if (id == gallery_menu_copy_frame) {
+                    if (videoPlayer == null || currentMessageObject == null) {
+                        return;
+                    }
+                    File videoFile = FileLoader.getInstance(currentAccount).getPathToMessage(currentMessageObject.messageOwner);
+                    MessageHelper.copyVideoFrameToClipboard(videoFile, videoPlayer.getCurrentPosition(), containerView, resourcesProvider, PhotoViewer.this::showDownloadAlert);
                 } else if (id == gallery_menu_save) {
                     if (Build.VERSION.SDK_INT >= 23 && (Build.VERSION.SDK_INT <= 28 || BuildVars.NO_SCOPED_STORAGE) && parentActivity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                         parentActivity.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 4);
@@ -6041,6 +6049,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         copyPhotoButtonGap = menuItem.addColoredGap();
         copyPhotoButtonGap.setColor(0xff181818);
         copyPhotoButton = menuItem.addSubItem(gallery_menu_copy, R.drawable.msg_copy, getString(R.string.CG_CopyPhoto)).setColors(0xfffafafa, 0xfffafafa);
+        if (CherrygramExperimentalConfig.INSTANCE.getShowCopyVideoFrame()) {
+            menuItem.addSubItem(gallery_menu_copy_frame, R.drawable.msg_copy, getString(R.string.CG_CopyVideoFrame)).setColors(0xfffafafa, 0xfffafafa);
+        }
         /** Copy button end **/
 
         galleryGap = menuItem.addColoredGap();
@@ -23830,6 +23841,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 
     private final static int gallery_menu_paint2 = 1001;
     private final static int gallery_menu_copy = 1002;
+    private final static int gallery_menu_copy_frame = 1003;
 
     private void changeCGMediaItemsVisibility(boolean visible) {
         if (visible) {

@@ -14,7 +14,11 @@ import static org.telegram.messenger.LocaleController.getString;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -25,16 +29,19 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BaseController;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -47,9 +54,15 @@ import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.Forum.ForumUtilities;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.BulletinFactory;
+import org.telegram.ui.Components.AnimatedFileDrawable;
+
+import androidx.core.content.FileProvider;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.concurrent.CountDownLatch;
 
 public class MessageHelper extends BaseController {
@@ -391,5 +404,53 @@ public class MessageHelper extends BaseController {
             acc = MediaDataController.calcHash(acc, message.id);
         }
         return acc;
+    }
+
+    public static void copyVideoFrameToClipboard(File videoFile, long positionMs, View bulletinContainer, Theme.ResourcesProvider resourcesProvider, Runnable fallbackAction) {
+        Utilities.globalQueue.postRunnable(() -> {
+            Bitmap bitmap = null;
+            if (videoFile != null && videoFile.exists()) {
+                try {
+                    AnimatedFileDrawable drawable = new AnimatedFileDrawable(videoFile, true, 0, 0, null, null, null, 0, 0, true, null);
+                    bitmap = drawable.getFrameAtTime(positionMs, true);
+                    drawable.recycle();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+                if (bitmap == null) bitmap = SendMessagesHelper.createVideoThumbnailAtTime(videoFile.getAbsolutePath(), positionMs * 1000);
+            }
+            if (bitmap == null) {
+                if (fallbackAction != null) AndroidUtilities.runOnUIThread(fallbackAction);
+                return;
+            }
+            final Bitmap frame = bitmap;
+            AndroidUtilities.runOnUIThread(() -> saveFrameBitmapToClipboard(frame, bulletinContainer, resourcesProvider));
+        });
+    }
+
+    private static void saveFrameBitmapToClipboard(Bitmap bitmap, View bulletinContainer, Theme.ResourcesProvider resourcesProvider) {
+        Utilities.globalQueue.postRunnable(() -> {
+            File file = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), "frame_" + System.currentTimeMillis() + ".png");
+            boolean saved = false;
+            try (FileOutputStream output = new FileOutputStream(file)) {
+                saved = bitmap.compress(Bitmap.CompressFormat.PNG, 100, output);
+            } catch (Exception e) {
+                FileLog.e(e);
+            } finally {
+                bitmap.recycle();
+            }
+            if (!saved) return;
+            AndroidUtilities.runOnUIThread(() -> {
+                try {
+                    Context context = ApplicationLoader.applicationContext;
+                    Uri uri = FileProvider.getUriForFile(context, ApplicationLoader.getApplicationId() + ".provider", file);
+                    ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                    clipboard.setPrimaryClip(ClipData.newUri(context.getContentResolver(), "frame", uri));
+                    if (bulletinContainer instanceof FrameLayout frameLayout) BulletinFactory.of(frameLayout, resourcesProvider).createCopyBulletin(getString(R.string.PhotoCopied)).show();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            });
+        });
     }
 }

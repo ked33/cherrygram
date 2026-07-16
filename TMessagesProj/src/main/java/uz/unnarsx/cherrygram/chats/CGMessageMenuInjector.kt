@@ -373,12 +373,22 @@ object CGMessageMenuInjector {
         icons: ArrayList<Int?>
     ) {
 
-        val show = force || (chatActivity != null && CherrygramMessagesConfig.showJSON &&
+        val show = force || (chatActivity != null && CherrygramMessagesConfig.showMessageDetails &&
                 !(chatActivity.messageMenuHelper.allowNewMessageMenu() && MessageMenuCompactView.allowCompactStyle()))
 
         if (show) {
+            if (force) {
+                items.add("JSON")
+                options.add(ChatActivityHelper.OPTION_JSON_DETAILS)
+            } else {
+                items.add(getString(R.string.CG_MessageDetails))
+                options.add(ChatActivityHelper.OPTION_DETAILS)
+            }
+            icons.add(R.drawable.icon_json_solar)
+        }
+        if (!force && chatActivity != null && CherrygramMessagesConfig.showJSON) {
             items.add("JSON")
-            options.add(ChatActivityHelper.OPTION_DETAILS)
+            options.add(ChatActivityHelper.OPTION_JSON_DETAILS)
             icons.add(R.drawable.icon_json_solar)
         }
     }

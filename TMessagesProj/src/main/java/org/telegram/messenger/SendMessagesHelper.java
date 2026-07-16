@@ -85,6 +85,8 @@ import org.telegram.ui.Stories.MessageMediaStoryFull;
 import org.telegram.ui.TwoStepVerificationActivity;
 import org.telegram.ui.TwoStepVerificationSetupActivity;
 
+import uz.unnarsx.cherrygram.core.configs.CherrygramExperimentalConfig;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -9575,7 +9577,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         }
                     }
                 } else {
-                    if (info.isVideo || info.videoEditedInfo != null) {
+                    if (info.isVideo || info.videoEditedInfo != null || CherrygramExperimentalConfig.INSTANCE.getSendMp4DocumentAsVideo() && info.path != null && info.path.toLowerCase().endsWith(".mp4")) {
                         Bitmap thumb = null;
                         String thumbKey = null;
                         TLRPC.PhotoSize cover = null;
@@ -9587,7 +9589,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             videoEditedInfo = info.videoEditedInfo != null ? info.videoEditedInfo : createCompressionSettings(info.path);
                         }
 
-                        if (!forceDocument && (videoEditedInfo != null || info.path.endsWith("mp4"))) {
+                        if (!forceDocument && (videoEditedInfo != null || CherrygramExperimentalConfig.INSTANCE.getSendMp4DocumentAsVideo() && info.path != null && info.path.toLowerCase().endsWith(".mp4"))) {
                             if (info.path == null && info.searchImage != null) {
                                 if (info.searchImage.photo instanceof TLRPC.TL_photo) {
                                     info.path = FileLoader.getInstance(accountInstance.getCurrentAccount()).getPathToAttach(info.searchImage.photo, true).getAbsolutePath();

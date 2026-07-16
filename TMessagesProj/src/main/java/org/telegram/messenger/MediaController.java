@@ -103,6 +103,8 @@ import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.Stories.DarkThemeResourceProvider;
 import org.telegram.ui.Stories.recorder.StoryEntry;
 
+import uz.unnarsx.cherrygram.core.configs.CherrygramExperimentalConfig;
+
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -6349,6 +6351,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             maxBitrate = 1000_000;
             compressFactor = 1f;
             minCompressFactor = 1f;
+        }
+        if (!CherrygramExperimentalConfig.INSTANCE.getEnhancedVideoBitrate()) {
+            if (Math.min(height, width) >= 2160) maxBitrate = 12000_000;
+            else if (Math.min(height, width) >= 1440) maxBitrate = 8000_000;
+            else if (Math.min(height, width) >= 1080) maxBitrate = 6800_000;
+            else if (Math.min(height, width) >= 720) maxBitrate = 2600_000;
+            else if (Math.min(height, width) >= 480) maxBitrate = 1000_000;
         }
         int remeasuredBitrate = (int) (originalBitrate / (Math.min(originalHeight / (float) (height), originalWidth / (float) (width))));
         remeasuredBitrate *= compressFactor;

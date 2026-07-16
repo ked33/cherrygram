@@ -36,7 +36,8 @@ import uz.unnarsx.cherrygram.preferences.helpers.SettingsHelper;
 public class MessagesPreferencesEntry extends UniversalFragment {
 
     private final int messageMenuRow = 1, messageSizeRow = 2, directShareRow = 3,
-            hideTimeOnStickersRow = 4, showForwardDateRow = 5, pencilIconForEditedRow = 6;
+            hideTimeOnStickersRow = 4, showForwardDateRow = 5, pencilIconForEditedRow = 6,
+            messageDetailsRow = 18, timeDetailsRow = 19;
 
     private final int geminiSettingsRow = 7, voiceTranscriptionRow = 8;
 
@@ -71,6 +72,10 @@ public class MessagesPreferencesEntry extends UniversalFragment {
         items.add(SettingsHelper.asSwitchCG(pencilIconForEditedRow, getString(R.string.AP_ShowPencilIcon))
                 .setChecked(CherrygramMessagesConfig.INSTANCE.getShowPencilIcon())
         );
+        items.add(SettingsHelper.asSwitchCG(messageDetailsRow, getString(R.string.CG_MessageDetails), getString(R.string.CG_MessageDetails_Desc))
+                .setChecked(CherrygramMessagesConfig.INSTANCE.getShowMessageDetails()));
+        items.add(SettingsHelper.asSwitchCG(timeDetailsRow, getString(R.string.CG_ShowTimeDetails))
+                .setChecked(CherrygramMessagesConfig.INSTANCE.getShowTimeDetails()));
         items.add(UItem.asShadow(null));
 
         items.add(UItem.asButton(geminiSettingsRow, R.drawable.magic_stick_solar, getString(R.string.CP_GeminiAI_Header)));
@@ -120,6 +125,12 @@ public class MessagesPreferencesEntry extends UniversalFragment {
         } else if (item.id == pencilIconForEditedRow) {
             CherrygramMessagesConfig.INSTANCE.setShowPencilIcon(!CherrygramMessagesConfig.INSTANCE.getShowPencilIcon());
             SettingsHelper.updateCheckState(view, CherrygramMessagesConfig.INSTANCE.getShowPencilIcon());
+        } else if (item.id == messageDetailsRow) {
+            CherrygramMessagesConfig.INSTANCE.setShowMessageDetails(!CherrygramMessagesConfig.INSTANCE.getShowMessageDetails());
+            SettingsHelper.updateCheckState(view, CherrygramMessagesConfig.INSTANCE.getShowMessageDetails());
+        } else if (item.id == timeDetailsRow) {
+            CherrygramMessagesConfig.INSTANCE.setShowTimeDetails(!CherrygramMessagesConfig.INSTANCE.getShowTimeDetails());
+            SettingsHelper.updateCheckState(view, CherrygramMessagesConfig.INSTANCE.getShowTimeDetails());
         } else if (item.id == geminiSettingsRow) {
             CherrygramPreferencesNavigator.INSTANCE.createGemini(this);
         } else if (item.id == voiceTranscriptionRow) {

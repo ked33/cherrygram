@@ -95,6 +95,8 @@ import org.telegram.messenger.secretmedia.ExtendedDefaultDataSourceFactory;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Stories.recorder.StoryEntry;
 
+import uz.unnarsx.cherrygram.core.configs.CherrygramExperimentalConfig;
+
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -227,6 +229,14 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         eglParentContext = ctx;
     }
 
+    private int getPlayerExtensionRendererMode() {
+        return switch (CherrygramExperimentalConfig.INSTANCE.getVideoPlayerDecoder()) {
+            case CherrygramExperimentalConfig.VIDEO_DECODER_HARDWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
+            case CherrygramExperimentalConfig.VIDEO_DECODER_PREFER_HARDWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
+            default -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER;
+        };
+    }
+
     private void ensurePlayerCreated() {
         DefaultLoadControl loadControl;
         if (isStory) {
@@ -259,7 +269,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
             } else {
                 factory = new DefaultRenderersFactory(ApplicationLoader.applicationContext);
             }
-            factory.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER);
+            factory.setExtensionRendererMode(getPlayerExtensionRendererMode());
             ExoPlayer.Builder builder = new ExoPlayer.Builder(ApplicationLoader.applicationContext).setRenderersFactory(factory)
                     .setTrackSelector(trackSelector)
                     .setLoadControl(loadControl);
@@ -422,8 +432,34 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
     }
 
     public static Quality getSavedQuality(ArrayList<Quality> qualities, MessageObject messageObject) {
-        if (messageObject == null) return null;
-        return getSavedQuality(qualities, messageObject.getDialogId(), messageObject.getId());
+        if (messageObject == null) return getDefaultSavedQuality(qualities);
+        Quality quality = getSavedQuality(qualities, messageObject.getDialogId(), messageObject.getId());
+        return quality != null ? quality : getDefaultSavedQuality(qualities);
+    }
+
+    private static Quality getDefaultQualityInRange(ArrayList<Quality> qualities, int maximum, int minimum) {
+        for (Quality quality : qualities) {
+            if (!quality.original && quality.p() <= maximum && quality.p() >= minimum) return quality;
+        }
+        return null;
+    }
+
+    public static Quality getDefaultSavedQuality(ArrayList<Quality> qualities) {
+        Quality quality;
+        switch (CherrygramExperimentalConfig.INSTANCE.getDefaultHlsVideoQuality()) {
+            case CherrygramExperimentalConfig.HLS_QUALITY_ORIGINAL:
+                for (Quality item : qualities) if (item.original) return item;
+            case CherrygramExperimentalConfig.HLS_QUALITY_1440:
+                quality = getDefaultQualityInRange(qualities, Integer.MAX_VALUE, 1440); if (quality != null) return quality;
+            case CherrygramExperimentalConfig.HLS_QUALITY_1080:
+                quality = getDefaultQualityInRange(qualities, 1439, 1000); if (quality != null) return quality;
+            case CherrygramExperimentalConfig.HLS_QUALITY_720:
+                quality = getDefaultQualityInRange(qualities, 999, 700); if (quality != null) return quality;
+            case CherrygramExperimentalConfig.HLS_QUALITY_LOW:
+                return getDefaultQualityInRange(qualities, 699, 0);
+            default:
+                return null;
+        }
     }
 
     public static Quality getSavedQuality(ArrayList<Quality> qualities, long did, int mid) {

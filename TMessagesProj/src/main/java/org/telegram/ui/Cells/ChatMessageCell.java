@@ -136,6 +136,9 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.utils.FrameTickScheduler;
 import org.telegram.messenger.utils.tlutils.TlUtils;
 import org.telegram.messenger.video.OldVideoPlayerRewinder;
+
+import uz.unnarsx.cherrygram.core.configs.CherrygramExperimentalConfig;
+import uz.unnarsx.cherrygram.core.configs.CherrygramMessagesConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -3702,7 +3705,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     private boolean checkDateMotionEvent(MotionEvent event) {
-        if (!currentMessageObject.isImportedForward()) {
+        if (!currentMessageObject.isImportedForward() && !CherrygramMessagesConfig.INSTANCE.getShowTimeDetails()) {
             return false;
         }
         int x = (int) getEventX(event);
@@ -9790,6 +9793,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
                     if (w == 0 || h == 0) {
                         w = h = dp(150);
+                    }
+                    if (CherrygramExperimentalConfig.INSTANCE.getShowSmallGif() && messageObject.type == MessageObject.TYPE_GIF) {
+                        w = h = dp(120);
                     }
                     if (messageObject.type == MessageObject.TYPE_VIDEO) {
                         if (w < infoWidth + dp(16 + 24)) {

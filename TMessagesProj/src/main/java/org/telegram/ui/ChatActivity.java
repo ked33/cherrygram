@@ -332,6 +332,7 @@ import uz.unnarsx.cherrygram.chats.CGChatMenuInjector;
 import uz.unnarsx.cherrygram.chats.CGMessageMenuInjector;
 import uz.unnarsx.cherrygram.chats.gemini.GeminiButtonsLayout;
 import uz.unnarsx.cherrygram.chats.helpers.ChatActivityHelper;
+import uz.unnarsx.cherrygram.chats.helpers.MessageDetailsHelper;
 import uz.unnarsx.cherrygram.chats.ui.MessageMenuCompactView;
 import uz.unnarsx.cherrygram.chats.ui.MessageMenuHelper;
 import uz.unnarsx.cherrygram.core.CGFeatureHooks;
@@ -38345,6 +38346,10 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public void didPressTime(ChatMessageCell cell) {
+            if (CherrygramMessagesConfig.INSTANCE.getShowTimeDetails()) {
+                MessageDetailsHelper.showTime(ChatActivity.this, cell.getMessageObject());
+                return;
+            }
             createUndoView();
             if (undoView == null) {
                 return;

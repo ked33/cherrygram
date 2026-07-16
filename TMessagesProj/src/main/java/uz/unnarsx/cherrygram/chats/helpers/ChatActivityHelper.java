@@ -148,6 +148,7 @@ public class ChatActivityHelper extends BaseController {
     public final static int OPTION_EXPLANATION_GEMINI = 2031;
     public final static int OPTION_SUMMARIZE_GEMINI = 2032;
     public final static int OPTION_ADVANCED_SEARCH = 2033;
+    public final static int OPTION_JSON_DETAILS = 2034;
     /** Cherrygram chat options constant id's finish */
 
     /** ActionBar options start*/
@@ -487,6 +488,12 @@ public class ChatActivityHelper extends BaseController {
                 break;
             }
             case OPTION_DETAILS: {
+                if (selectedObject != null) {
+                    MessageDetailsHelper.show(chatActivity, selectedObject);
+                }
+                break;
+            }
+            case OPTION_JSON_DETAILS: {
                 if (selectedObject != null) {
                     JsonBottomSheet.getMessageId(selectedObject);
                     JsonBottomSheet.showAlert(chatActivity.getContext(), chatActivity.getResourceProvider(), chatActivity, selectedObject, currentChat);
