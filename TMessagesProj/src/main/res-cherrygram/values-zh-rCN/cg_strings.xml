@@ -455,6 +455,7 @@
     <string name="CG_ShowSmallGif_Desc">将聊天中的 GIF 固定为更紧凑的尺寸。</string>
     <string name="CG_CopyVideoFrame">复制视频帧</string>
     <string name="CG_CopyVideoFrame_Desc">在消息或媒体查看器菜单中复制当前视频画面。</string>
+    <string name="CG_VideoFrameCopied">视频帧已复制到剪贴板</string>
     <string name="CG_MessageDetails">消息详细信息</string>
     <string name="CG_MessageDetails_Desc">显示消息 ID、时间、发送者、媒体和文件信息。</string>
     <string name="CG_ShowTimeDetails">点击时间显示详细信息</string>

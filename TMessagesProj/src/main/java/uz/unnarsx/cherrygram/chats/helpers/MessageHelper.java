@@ -446,7 +446,7 @@ public class MessageHelper extends BaseController {
                     Uri uri = FileProvider.getUriForFile(context, ApplicationLoader.getApplicationId() + ".provider", file);
                     ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                     clipboard.setPrimaryClip(ClipData.newUri(context.getContentResolver(), "frame", uri));
-                    if (bulletinContainer instanceof FrameLayout frameLayout) BulletinFactory.of(frameLayout, resourcesProvider).createCopyBulletin(getString(R.string.PhotoCopied)).show();
+                    if (bulletinContainer instanceof FrameLayout frameLayout) BulletinFactory.of(frameLayout, resourcesProvider).createCopyBulletin(getString(R.string.CG_VideoFrameCopied)).show();
                 } catch (Exception e) {
                     FileLog.e(e);
                 }
