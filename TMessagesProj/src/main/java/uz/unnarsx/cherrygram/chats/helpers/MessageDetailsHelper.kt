@@ -45,9 +45,9 @@ object MessageDetailsHelper {
         }
         if (!owner.message.isNullOrEmpty()) add("文本", owner.message)
         AlertDialog.Builder(context)
-            .setTitle(R.string.CG_MessageDetails)
+            .setTitle(LocaleController.getString(R.string.CG_MessageDetails))
             .setMessage(lines.toString().trim())
-            .setPositiveButton(R.string.Close, null)
+            .setPositiveButton(LocaleController.getString(R.string.Close), null)
             .show()
     }
 
@@ -60,6 +60,10 @@ object MessageDetailsHelper {
             if (owner.edit_date != 0) append("\n编辑时间：").append(LocaleController.getInstance().formatterStats.format(Date(owner.edit_date * 1000L)))
             owner.fwd_from?.date?.takeIf { it != 0 }?.let { append("\n原始转发时间：").append(LocaleController.getInstance().formatterStats.format(Date(it * 1000L))) }
         }
-        AlertDialog.Builder(context).setTitle(R.string.CG_ShowTimeDetails).setMessage(text).setPositiveButton(R.string.Close, null).show()
+        AlertDialog.Builder(context)
+            .setTitle(LocaleController.getString(R.string.CG_ShowTimeDetails))
+            .setMessage(text)
+            .setPositiveButton(LocaleController.getString(R.string.Close), null)
+            .show()
     }
 }
