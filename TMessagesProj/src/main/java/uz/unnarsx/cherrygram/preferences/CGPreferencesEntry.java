@@ -62,7 +62,7 @@ public class CGPreferencesEntry extends UniversalFragment {
         items.add(UItem.asButton(appearanceRow, R.drawable.msg_theme_solar, getString(R.string.AP_Header_Appearance)));
         items.add(UItem.asButton(chatsRow, R.drawable.msg_msgbubble3_solar, getString(R.string.FilterChats)));
         items.add(UItem.asButton(cameraRow, R.drawable.camera_solar, getString(R.string.CP_Category_Camera)));
-//        items.add(UItem.asButton(experimentalRow, R.drawable.msg_fave_solar, getString(R.string.EP_Category_Experimental)));
+        items.add(UItem.asButton(experimentalRow, R.drawable.msg_fave_solar, getString(R.string.EP_Category_Experimental)));
         items.add(UItem.asButton(privacyRow, R.drawable.msg_secret_solar, getString(R.string.SettingsPrivacySecurity)));
         items.add(UItem.asShadow(null));
 
